@@ -11,6 +11,9 @@ import numpy as np
 import time
 
 import kraken
+import poloniex
+
+
 
 def createTimeStamp(datestr, format="%Y-%m-%d %H:%M:%S"):
     return time.mktime(time.strptime(datestr, format))
