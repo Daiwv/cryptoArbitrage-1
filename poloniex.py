@@ -22,10 +22,14 @@ pairs = ['BTC_BCN', 'BTC_BELA', 'BTC_BLK', 'BTC_BTCD', 'BTC_BTM', 'BTC_BTS',
 'USDT_REP', 'ETH_REP', 'BTC_ARDR', 'BTC_ZEC', 'ETH_ZEC', 'USDT_ZEC', 'XMR_ZEC', 
 'BTC_STRAT', 'BTC_NXC', 'BTC_PASC', 'BTC_GNT', 'ETH_GNT', 'BTC_GNO', 'ETH_GNO']
 
-def getTicker():
-    r = requests.get('https://poloniex.com/public?command=returnTicker')
-    return r.json()
-
 def getOrders(pair):
     r = requests.get('https://poloniex.com/public?command=returnOrderBook&currencyPair='+pair)
     return r.json()
+
+def topAskBid(pair):
+    orders = getOrders(pair)
+    ask = float(orders['asks'][0][0])
+    bid = float(orders['bids'][0][0])
+    return ask, bid
+
+
