@@ -19,8 +19,3 @@ def topAskBid(pair):
     ask = float(orders['asks'][0][0])
     bid = float(orders['bids'][0][0])
     return ask, bid
-
-a = requests.get('https://api.liqui.io/api/3/info').json()
-for x in a['pairs']:
-    if 'usdt' in x:
-        print(x)

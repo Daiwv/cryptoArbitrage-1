@@ -12,9 +12,18 @@ import bitfinex
 import bittrex
 import xbtce
 import hitbtc
-
 import time
+import numpy as np
+import pandas as pd
+from twilio.rest import Client
+import datetime
 
+#information for messaging
+sid, auth = 'ACab5ed88cf08f4d2df63791bfe06c47c6', 'e5cf603faa88be60621654aaf8ce2e92'
+cli = Client(sid,auth)
+myTwilioNumber, myCellPhone = '+13178544873', '+13176905477'
+
+#Dictionaries for exchanges
 bitfinexPairs = {'litecoin-bitcoin': 'ltcbtc', 'ethereum-bitcoin': 'ethbtc', 'ethereum classic-bitcoin': 'etcbtc', 'zcash-bitcoin': 'zecbtc', 'monero-bitcoin': 'xmrbtc', 'dash-bitcoin': 'dshbtc', 'bitconnect-bitcoin': 'bccbtc', 'ripple-bitcoin': 'xrpbtc', 'iota-bitcoin': 'iotbtc', 'iota-ethereum': 'ioteth', 'eos-bitcoin': 'eosbtc', 'eos-ethereum': 'eoseth'}
 krakenPairs = {'dash-bitcoin': 'DASHXBT', 'eos-ethereum': 'EOSETH', 'eos-bitcoin': 'EOSXBT', 'gnosis-ethereum': 'GNOETH', 'gnosis-bitcoin': 'GNOXBT', 'ethereum classic-ethereum': 'XETCXETH', 'ethereum classic-bitcoin': 'XETCXXBT', 'ethereum-bitcoin': 'XETHXXBT', 'iconomi-ethereum': 'XICNXETH', 'iconomi-bitcoin': 'XICNXXBT', 'litecoin-bitcoin': 'XLTCXXBT', 'melon-ethereum': 'XMLNXETH', 'melon-bitcoin': 'XMLNXXBT', 'augur-ethereum': 'XREPXETH', 'augur-bitcoin': 'XREPXXBT', 'dogecoin-bitcoin': 'XXDGXXBT', 'stellar lumens-bitcoin': 'XXLMXXBT', 'monero-bitcoin': 'XXMRXXBT', 'ripple-bitcoin': 'XXRPXXBT', 'zcash-bitcoin': 'XZECXXBT'}
 poloniexPairs = {'belacoin-bitcoin': 'BTC_BELA', 'bitcoin dark-bitcoin': 'BTC_BTCD', 'bitmark-bitcoin': 'BTC_BTM', 'bitshares-bitcoin': 'BTC_BTS', 'blackcoin-bitcoin': 'BTC_BLK', 'burst-bitcoin': 'BTC_BURST', 'bytecoin-bitcoin': 'BTC_BCN', 'clams-bitcoin': 'BTC_CLAM', 'dash-bitcoin': 'BTC_DASH', 'digibyte-bitcoin': 'BTC_DGB', 'dogecoin-bitcoin': 'BTC_DOGE', 'einsteinium': 'BTC_EMC2', 'floodingcoin-bitcoin': 'BTC_FLDC', 'florincoin-bitcoin': 'BTC_FLO', 'gamecredits-bitcoin': 'BTC_GAME', 'gridcoin-bitcoin': 'BTC_GRC', 'zcash-bitcoin': 'BTC_ZEC', 'ardor-bitcoin': 'BTC_ARDR', 'augur-bitcoin': 'BTC_REP', 'augur-ethereum': 'ETH_REP', 'augur-tether': 'USDT_REP', 'bitcoin plus-bitcoin': 'BTC_XBC', 'bitcrystals-bitcoin': 'BTC_BCY', 'counterparty-bitcoin': 'BTC_XCP', 'dash-tether': 'USDT_DASH', 'decred-bitcoin': 'BTC_DCR', 'dnotes-bitcoin': 'BTC_NOTE', 'ethereum classic-bitcoin': 'BTC_ETC', 'ethereum classic-ethereum': 'ETH_ETC', 'ethereum classic-tether': 'USDT_ETC', 'ethereum-bitcoin': 'BTC_ETH', 'ethereum-steem': 'ETH_STEEM', 'ethereum-tether': 'USDT_ETH', 'expanse-bitcoin': 'BTC_EXP', 'factom-bitcoin': 'BTC_FCT', 'gnosis-bitcoin': 'BTC_GNO', 'gnosis-ethereum': 'ETH_GNO', 'golem-bitcoin': 'BTC_GNT', 'golem-ethereum': 'ETH_GNT', 'huntercoin-bitcoin': 'BTC_HUC', 'lisk-bitcoin': 'BTC_LSK', 'list-ethereum': 'ETH_LSK', 'litecoin-bitcoin': 'BTC_LTC', 'litecoin-tether': 'USDT_LTC', 'maidsafecoin-bitcoin': 'BTC_MAID', 'monero-bitcoin': 'BTC_XMR', 'monero-tether': 'USDT_XMR', 'monero-zcash': 'XMR_ZEC', 'namecoin-bitcoin': 'BTC_NMC', 'nautiluscoin-bitcoin': 'BTC_NAUT', 'navcoin-bitcoin': 'BTC_NAV', 'nem-bitcoin': 'BTC_XEM', 'neoscoin': 'BTC_NEOS', 'nexium-bitcoin': 'BTC_NXC', 'nxt-bitcoin': 'BTC_NXT', 'nxt-tether': 'USDT_NXT', 'omni-bitcoin': 'BTC_OMNI', 'pascalcoin-bitcoin': 'BTC_PASC', 'peercoin-bitcoin': 'BTC_PPC', 'pinkcoin-bitcoin': 'BTC_PINK', 'potcoin-bitcoin': 'BTC_POT', 'primecoin-bitcoin': 'BTC_XPM', 'radium-bitcoin': 'BTC_RADS', 'riecoin-bitcoin': 'BTC_RIC', 'ripple-bitcoin': 'BTC_XRP', 'ripple-tether': 'USDT_XRP', 'siacoin-bitcoin': 'BTC_SC', 'steem-bitcoin': 'BTC_STEEM', 'storjcoin x-bitcoin': 'BTC_SJCX', 'stratus-bitcoin': 'BTC_STRAT', 'synereo-bitcoin': 'BTC_AMP', 'syscoin-bitcoin': 'BTC_SYS', 'tether-bitcoin': 'USDT_BTC', 'vcash-bitcoin': 'BTC_XVC', 'vericoin-bitcoin': 'BTC_VRC', 'vertcoin-bitcoin': 'BTC_VTC', 'viacoin-bitcoin': 'BTC_VIA', 'zcash-ethereum': 'ETH_ZEC', 'zcash-tether': 'USDT_ZEC'}
@@ -22,19 +31,18 @@ cryptopiaPairs = {'1337-bitcoin': '1337_BTC', '23skidoo-bitcoin': 'CHAO_BTC', '4
 bittrexPairs = {'bitcoin-bitcny': 'BITCNY-BTC', 'firstblood-bitcoin': 'BTC-1ST', '2give-bitcoin': 'BTC-2GIVE', 'artbyte-bitcoin': 'BTC-ABY', 'adtoken-bitcoin': 'BTC-ADT', 'adex-bitcoin': 'BTC-ADX', 'aeon-bitcoin': 'BTC-AEON', 'idni agoras-bitcoin': 'BTC-AGRS', 'synereoamp-bitcoin': 'BTC-AMP', 'antshares-bitcoin': 'BTC-ANS', 'aragon-bitcoin': 'BTC-ANT', 'apx-bitcoin': 'BTC-APX', 'ardor-bitcoin': 'BTC-ARDR', 'ark-bitcoin': 'BTC-ARK', 'auroracoin-bitcoin': 'BTC-AUR', 'basic attention token-bitcoin': 'BTC-BAT', 'bitbay-bitcoin': 'BTC-BAY', 'bitcrystals-bitcoin': 'BTC-BCY', 'bitbean-bitcoin': 'BTC-BITB', 'blitzcash-bitcoin': 'BTC-BLITZ', 'blackcoin-bitcoin': 'BTC-BLK', 'blocknet-bitcoin': 'BTC-BLOCK', 'bancor-bitcoin': 'BTC-BNT', 'breakout-bitcoin': 'BTC-BRK', 'breakout stake-bitcoin': 'BTC-BRX', 'bitsend-bitcoin': 'BTC-BSD', 'bata-bitcoin': 'BTC-BTA', 'bitcoindark-bitcoin': 'BTC-BTCD', 'bitshares-bitcoin': 'BTC-BTS', 'burst-bitcoin': 'BTC-BURST', 'bytecent-bitcoin': 'BTC-BYC', 'cannabiscoin-bitcoin': 'BTC-CANN', 'cofound.it-bitcoin': 'BTC-CFI', 'clams-bitcoin': 'BTC-CLAM', 'cloakcoin-bitcoin': 'BTC-CLOAK', 'clubcoin-bitcoin': 'BTC-CLUB', 'circuits of value-bitcoin': 'BTC-COVAL', 'capricoin-bitcoin': 'BTC-CPC', 'creditbit-bitcoin': 'BTC-CRB', 'crown-bitcoin': 'BTC-CRW', 'curecoin-bitcoin': 'BTC-CURE', 'darcrus-bitcoin': 'BTC-DAR', 'dash-bitcoin': 'BTC-DASH', 'decred-bitcoin': 'BTC-DCR', 'decent-bitcoin': 'BTC-DCT', 'digibyte-bitcoin': 'BTC-DGB', 'digix dao-bitcoin': 'BTC-DGD', 'diamond-bitcoin': 'BTC-DMD', 'dogecoin-bitcoin': 'BTC-DOGE', 'dopecoin-bitcoin': 'BTC-DOPE', 'dt token-bitcoin': 'BTC-DRACO', 'databits-bitcoin': 'BTC-DTB', 'dynamic-bitcoin': 'BTC-DYN', 'eboost-bitcoin': 'BTC-EBST', 'edgeless-bitcoin': 'BTC-EDG', 'electronicgulden-bitcoin': 'BTC-EFL', 'evergreencoin-bitcoin': 'BTC-EGC', 'emercoin-bitcoin': 'BTC-EMC', 'einsteinium-bitcoin': 'BTC-EMC2', 'energycoin-bitcoin': 'BTC-ENRG', 'europecoin-bitcoin': 'BTC-ERC', 'ethereum classic-bitcoin': 'BTC-ETC', 'ethereum-bitcoin': 'BTC-ETH', 'exclusivecoin-bitcoin': 'BTC-EXCL', 'expanse-bitcoin': 'BTC-EXP', 'faircoin-bitcoin': 'BTC-FAIR', 'factom-bitcoin': 'BTC-FCT', 'foldingcoin-bitcoin': 'BTC-FLDC', 'florin-bitcoin': 'BTC-FLO', 'feathercoin-bitcoin': 'BTC-FTC', 'funfair-bitcoin': 'BTC-FUN', 'gambit-bitcoin': 'BTC-GAM', 'gamecredits-bitcoin': 'BTC-GAME', 'gbg-bitcoin': 'BTC-GBG', 'byteball-bitcoin': 'BTC-GBYTE', 'globalcurrencyreserve-bitcoin': 'BTC-GCR', 'geocoin-bitcoin': 'BTC-GEO', 'goldcoin-bitcoin': 'BTC-GLD', 'gnosis-bitcoin': 'BTC-GNO', 'golem-bitcoin': 'BTC-GNT', 'golos-bitcoin': 'BTC-GOLOS', 'gridcoin-bitcoin': 'BTC-GRC', 'groestlcoin-bitcoin': 'BTC-GRS', 'guppy-bitcoin': 'BTC-GUP', 'hackergold-bitcoin': 'BTC-HKG', 'humaniq-bitcoin': 'BTC-HMQ', 'incent-bitcoin': 'BTC-INCNT', 'influxcoin-bitcoin': 'BTC-INFX', 'i/ocoin-bitcoin': 'BTC-IOC', 'ion-bitcoin': 'BTC-ION', 'internet of people-bitcoin': 'BTC-IOP', 'komodo-bitcoin': 'BTC-KMD', 'korecoin-bitcoin': 'BTC-KORE', 'lbry credits-bitcoin': 'BTC-LBC', 'legends-bitcoin': 'BTC-LGD', 'lomocoin-bitcoin': 'BTC-LMC', 'lisk-bitcoin': 'BTC-LSK', 'litecoin-bitcoin': 'BTC-LTC', 'lunyr-bitcoin': 'BTC-LUN', 'maidsafecoin-bitcoin': 'BTC-MAID', 'monaco-bitcoin': 'BTC-MCO', 'memetic-bitcoin': 'BTC-MEME', 'melon-bitcoin': 'BTC-MLN', 'monacoin-bitcoin': 'BTC-MONA', 'metal-bitcoin': 'BTC-MTL', 'monetaryunit-bitcoin': 'BTC-MUE', 'musicoin-bitcoin': 'BTC-MUSIC', 'myriadcoin-bitcoin': 'BTC-MYR', 'mysterium-bitcoin': 'BTC-MYST', 'nautiluscoin-bitcoin': 'BTC-NAUT', 'navcoin-bitcoin': 'BTC-NAV', 'nubits-bitcoin': 'BTC-NBT', 'neoscoin-bitcoin': 'BTC-NEOS', 'gulden-bitcoin': 'BTC-NLG', 'numeraire-bitcoin': 'BTC-NMR', 'nexium-bitcoin': 'BTC-NXC', 'nexus-bitcoin': 'BTC-NXS', 'nxt-bitcoin': 'BTC-NXT', 'okcash-bitcoin': 'BTC-OK', 'omnicoin-bitcoin': 'BTC-OMNI', 'tenx pay token-bitcoin': 'BTC-PAY', 'project decorum-bitcoin': 'BTC-PDC', 'pinkcoin-bitcoin': 'BTC-PINK', 'pivx-bitcoin': 'BTC-PIVX', 'parkbyte-bitcoin': 'BTC-PKB', 'potcoin-bitcoin': 'BTC-POT', 'peercoin-bitcoin': 'BTC-PPC', 'pesetacoin -bitcoin': 'BTC-PTC', 'patientory-bitcoin': 'BTC-PTOY', 'quantum resistant ledger-bitcoin': 'BTC-QRL', 'qwark-bitcoin': 'BTC-QWARK', 'radium-bitcoin': 'BTC-RADS', 'rubycoin-bitcoin': 'BTC-RBY', 'reddcoin-bitcoin': 'BTC-RDD', 'augur-bitcoin': 'BTC-REP', 'rise-bitcoin': 'BTC-RISE', 'iex.ec-bitcoin': 'BTC-RLC', 'steemdollars-bitcoin': 'BTC-SBD', 'siacoin-bitcoin': 'BTC-SC', 'safeexchangecoin-bitcoin': 'BTC-SEC', 'sequence-bitcoin': 'BTC-SEQ', 'shift-bitcoin': 'BTC-SHIFT', 'siberian chervonets-bitcoin': 'BTC-SIB', 'solarcoin-bitcoin': 'BTC-SLR', 'salus-bitcoin': 'BTC-SLS', 'singulardtv-bitcoin': 'BTC-SNGLS', 'synergy-bitcoin': 'BTC-SNRG', 'status network token-bitcoin': 'BTC-SNT', 'sphere-bitcoin': 'BTC-SPHR', 'spreadcoin-bitcoin': 'BTC-SPR', 'startcoin-bitcoin': 'BTC-START', 'steem-bitcoin': 'BTC-STEEM', 'storj-bitcoin': 'BTC-STORJ', 'stratis-bitcoin': 'BTC-STRAT', 'bitswift-bitcoin': 'BTC-SWIFT', 'swarm city token-bitcoin': 'BTC-SWT', 'syndicate-bitcoin': 'BTC-SYNX', 'syscoin-bitcoin': 'BTC-SYS', 'hempcoin-bitcoin': 'BTC-THC', 'chronobank time-bitcoin': 'BTC-TIME', 'tokencard-bitcoin': 'BTC-TKN', 'tokes-bitcoin': 'BTC-TKS', 'trig token-bitcoin': 'BTC-TRIG', 'trustcoin-bitcoin': 'BTC-TRST', 'trustplus-bitcoin': 'BTC-TRUST', 'transfercoin-bitcoin': 'BTC-TX', 'ubiq-bitcoin': 'BTC-UBQ', 'unbreakablecoin-bitcoin': 'BTC-UNB', 'unobtanium-bitcoin': 'BTC-UNO', 'viacoin-bitcoin': 'BTC-VIA', 'voxels-bitcoin': 'BTC-VOX', 'vericoin-bitcoin': 'BTC-VRC', 'verium-bitcoin': 'BTC-VRM', 'vertcoin-bitcoin': 'BTC-VTC', 'vtorrent-bitcoin': 'BTC-VTR', 'waves-bitcoin': 'BTC-WAVES', 'wings dao-bitcoin': 'BTC-WINGS', 'xaurum-bitcoin': 'BTC-XAUR', 'boolberry-bitcoin': 'BTC-XBB', 'counterparty-bitcoin': 'BTC-XCP', 'digitalnote-bitcoin': 'BTC-XDN', 'elastic-bitcoin': 'BTC-XEL', 'neweconomymovement-bitcoin': 'BTC-XEM', 'lumen-bitcoin': 'BTC-XLM', 'magi-bitcoin': 'BTC-XMG', 'monero-bitcoin': 'BTC-XMR', 'ripple-bitcoin': 'BTC-XRP', 'stealthcoin-bitcoin': 'BTC-XST', 'vcash-bitcoin': 'BTC-XVC', 'verge-bitcoin': 'BTC-XVG', 'whitecoin-bitcoin': 'BTC-XWC', 'zcoin-bitcoin': 'BTC-XZC', 'zclassic-bitcoin': 'BTC-ZCL', 'zcash-bitcoin': 'BTC-ZEC', 'zencash-bitcoin': 'BTC-ZEN', 'firstblood-ethereum': 'ETH-1ST', 'adtoken-ethereum': 'ETH-ADT', 'adex-ethereum': 'ETH-ADX', 'aragon-ethereum': 'ETH-ANT', 'basic attention token-ethereum': 'ETH-BAT', 'bancor-ethereum': 'ETH-BNT', 'cofound.it-ethereum': 'ETH-CFI', 'creditbit-ethereum': 'ETH-CRB', 'dash-ethereum': 'ETH-DASH', 'digix dao-ethereum': 'ETH-DGD', 'ethereum classic-ethereum': 'ETH-ETC', 'funfair-ethereum': 'ETH-FUN', 'gnosis-ethereum': 'ETH-GNO', 'golem-ethereum': 'ETH-GNT', 'guppy-ethereum': 'ETH-GUP', 'humaniq-ethereum': 'ETH-HMQ', 'legends-ethereum': 'ETH-LGD', 'litecoin-ethereum': 'ETH-LTC', 'lunyr-ethereum': 'ETH-LUN', 'monaco-ethereum': 'ETH-MCO', 'metal-ethereum': 'ETH-MTL', 'mysterium-ethereum': 'ETH-MYST', 'numeraire-ethereum': 'ETH-NMR', 'tenx pay token-ethereum': 'ETH-PAY', 'patientory-ethereum': 'ETH-PTOY', 'quantum resistant ledger-ethereum': 'ETH-QRL', 'augur-ethereum': 'ETH-REP', 'iex.ec-ethereum': 'ETH-RLC', 'siacoin-ethereum': 'ETH-SC', 'singulardtv-ethereum': 'ETH-SNGLS', 'status network token-ethereum': 'ETH-SNT', 'storj-ethereum': 'ETH-STORJ', 'chronobank time-ethereum': 'ETH-TIME', 'tokencard-ethereum': 'ETH-TKN', 'trustcoin-ethereum': 'ETH-TRST', 'wings dao-ethereum': 'ETH-WINGS', 'ripple-ethereum': 'ETH-XRP', 'zcash-ethereum': 'ETH-ZEC', 'bitcoin-tether': 'USDT-BTC', 'ethereum classic-tether': 'USDT-ETC', 'ethereum-tether': 'USDT-ETH', 'litecoin-tether': 'USDT-LTC', 'ripple-tether': 'USDT-XRP', 'zcash-tether': 'USDT-ZEC', 'omisego-bitcoin': 'BTC-OMG', 'omisego-ethereum': 'ETH-OMG', 'civic-bitcoin': 'BTC-CVC', 'civic-ethereum': 'ETH-CVC', 'particl-bitcoin': 'BTC-PART', 'qtum-bitcoin': 'BTC-QTUM', 'qtum-ethereum': 'ETH-QTUM'}
 xbtcePairs = {'dash-bitcoin': 'DSHBTC', 'emercoin-bitcoin': 'EMCBTC', 'ethereum-bitcoin': 'ETHBTC', 'litecoin-ethereum': 'ETHLTC', 'litecoin-bitcoin': 'LTCBTC', 'namecoin-bitcoin': 'NMCBTC', 'peercoin-bitcoin': 'PPCBTC'}
 hitbtcPairs = {'bytecoin-bitcoin': 'BCNBTC', 'dash-bitcoin': 'DASHBTC', 'dogecoin-bitcoin': 'DOGEBTC', 'emercoin-bitcoin': 'EMCBTC', 'ethereum-bitcoin': 'ETHBTC', 'lisk-bitcoin': 'LSKBTC', 'litecoin-bitcoin': 'LTCBTC', 'nxt-bitcoin': 'NXTBTC', 'steem-bitcoin': 'STEEMBTC', 'nem-bitcoin': 'XEMBTC', 'monero-bitcoin': 'XMRBTC', 'ardor-bitcoin': 'ARDRBTC', 'zcash-bitcoin': 'ZECBTC', 'waves-bitcoin': 'WAVESBTC', 'iconomi-bitcoin': 'ICNBTC', 'gnosis-bitcoin': 'GNOBTC', 'monero-ethereum': 'XMRETH', 'ethereum classic-ethereum': 'ETCETH', 'dash-ethereum': 'DASHETH', 'zcash-ethereum': 'ZECETH', 'gnosis-ethereum': 'GNOETH', 'ripple-bitcoin': 'XRPBTC', 'strats-bitcoin': 'STRATBTC'}
-liquiPairs = {'litecoin-tether': 'ltc_usdt', 'bitcoin-tether': 'btc_usdt', 'dash-tether': 'dash_usdt', 'ethereum-tether': 'eth_usdt', 'iconomi-tether': 'icn_usdt', 'golem-tether': 'gnt_usdt', 'waves-tether': 'waves_usdt', 'gnosis-tether': 'gno_usdt'}
 
+usePairs = [bitfinexPairs, krakenPairs, poloniexPairs, xbtcePairs, hitbtcPairs]
+totalPairs = [hitbtcPairs, bitfinexPairs, krakenPairs, poloniexPairs, cryptopiaPairs, bittrexPairs, xbtcePairs]
 
-usePairs = [liquiPairs, bitfinexPairs, krakenPairs, poloniexPairs, xbtcePairs, hitbtcPairs]
-totalPairs = [liquiPairs, hitbtcPairs, bitfinexPairs, krakenPairs, poloniexPairs, cryptopiaPairs, bittrexPairs, xbtcePairs]
-
-
+#This function pulls information from all exchanges based on a given coin pair
 def aggregateOrders(coinPair):
-    asks, bids = [], []
+    asks, bids, exchanges = [], [], []
     try:
         pAsk, pBid = poloniex.topAskBid(poloniexPairs[coinPair])
         asks.append(pAsk)
         bids.append(pBid)
+        exchanges.append('poloniex')
         print("Success: Poloniex - Ask:", pAsk, "Bid:",pBid)
     except:
         print("Failure: Poloniex")
@@ -43,6 +51,7 @@ def aggregateOrders(coinPair):
         kAsk, kBid = kraken.topAskBid(krakenPairs[coinPair])
         asks.append(kAsk)
         bids.append(kBid)
+        exchanges.append('kraken')
         print("Success: Kraken - Ask:", kAsk, "Bid:",kBid)
     except:
         print("Failure: Kraken")
@@ -51,6 +60,7 @@ def aggregateOrders(coinPair):
         cAsk, cBid = cryptopia.topAskBid(cryptopiaPairs[coinPair])
         asks.append(cAsk)
         bids.append(cBid)
+        exchanges.append('cryptopia')
         print("Success: Cryptopia - Ask:", cAsk, "Bid:", cBid)
     except:
         print("Failure: Cryptopia")
@@ -59,6 +69,7 @@ def aggregateOrders(coinPair):
         bAsk, bBid = bitfinex.topAskBid(bitfinexPairs[coinPair])
         asks.append(bAsk)
         bids.append(bBid)
+        exchanges.append('bitfinex')
         print("Success: Bitfinex - Ask:", bAsk, "Bid:", bBid)
     except:
         print("Failure: Bitfinex")
@@ -67,6 +78,7 @@ def aggregateOrders(coinPair):
         bAsk, bBid = bittrex.topAskBid(bittrexPairs[coinPair])
         asks.append(bAsk)
         bids.append(bBid)
+        exchanges.append('bittrex')
         print("Success: Bittrex - Ask:", bAsk, "Bid:", bBid)
     except:
         print("Failure: Bittrex")
@@ -75,6 +87,7 @@ def aggregateOrders(coinPair):
         bAsk, bBid = xbtce.topAskBid(xbtcePairs[coinPair])
         asks.append(bAsk)
         bids.append(bBid)
+        exchanges.append('xbtce')
         print("Success: xBTCe - Ask:", bAsk, "Bid:", bBid)
     except:
         print("Failure: xBTCe")
@@ -83,31 +96,60 @@ def aggregateOrders(coinPair):
         bAsk, bBid = hitbtc.topAskBid(hitbtcPairs[coinPair])
         asks.append(bAsk)
         bids.append(bBid)
+        exchanges.append('hitbtc')
         print("Success: HitBTC - Ask:", bAsk, "Bid:", bBid)
     except:
         print("Failure: HitBTC")
 
-    return asks, bids
-
-potential = []
-def check(coin):
-    asks, bids = aggregateOrders(coin)
+    return asks, bids, exchanges
+        
+#This function checks to see if there's a discrepency
+def checkForDifference(coin, percentThreshold = 0.5):
+    asks, bids, exchanges = aggregateOrders(coin)
     try:
-        if max(bids) > min(asks) and max(bids)-min(asks) >= .001:
-            print('YASSSSS')
-            print(max(bids)-min(asks))
-            return (coin,max(bids)-min(asks))
+        #Get difference information
+        avg = np.mean(asks+bids)
+        maximum = max(bids)
+        minimum = min(asks)
+        diff = maximum-minimum
+        pct = (diff/avg)*100
+
+        #if the percentages is above the threshold, then report it
+        if pct >= percentThreshold:
+            print('Discrepency')
+            cheap = exchanges[asks.index(minimum)]
+            expensive = exchanges[bids.index(maximum)]
+            return (coin, diff, pct, avg, cheap, expensive)
+        #otherwise, just ignore
         else:
-            print('no')
+            print('No Discrepency')
     except:
         print('Error')
 
-def makeMoney(listOfPairs, times=5):
+#writes a log of current state as the timestamp
+def writeLog(log):
+    toWrite = pd.DataFrame(log)
+    toWrite.columns = ['Coin Pair', 'Price Difference', 'Percent Difference', 'Price Average', 'Cheap Exchange', 'Expensive Exchange']
+    path = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+    toWrite.to_csv('logs/'+path+'.csv')
+    return []
+
+#continually checks for winning numbers
+def makeMoney(listOfPairs, numWins=50):
     winners = []
-    for i in range(times):
+    while True:
+        if len(winners) >= numWins:
+            winners = writeLog(winners)
+            print('\nLog Written\n')
+            
         for group in listOfPairs:
             for token in group.keys():
-                winner = check(token)
-                winners.append(winner)
+                winner = checkForDifference(token)
+                if winner:
+                    winners.append(winner)
+                    if winner[2] > 1:
+                        body = winner[0]+' has discrepency of '+str(winner[1])+' which is '+str(winner[2]*100)+' percent'
+                        message = cli.messages.create(body=body, from_=myTwilioNumber, to=myCellPhone)
+                        print('\n-----MESSAGE SENT-----\n')
                 time.sleep(15)
     return winners
