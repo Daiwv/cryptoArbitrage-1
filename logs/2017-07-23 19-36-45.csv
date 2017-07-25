@@ -1,0 +1,11 @@
+Coin Pair,Price Difference,Percent Difference,Price Average,Cheap Exchange,Expensive Exchange,Min,Max
+ethereum-bitcoin,0.00098998,1.192880884,0.082990684,cryptopia,bitfinex,0.08246502,0.083455
+litecoin-ethereum,4.84724023,184.4547707,2.627874688,bittrex,xbtce,0.19944977,5.04669
+bytecoin-bitcoin,1.46E-07,27.64566556,5.28E-07,hitbtc,poloniex,4.74E-07,6.20E-07
+ethereum-bitcoin,0.00098998,1.193146343,0.082972219,cryptopia,bitfinex,0.08246502,0.083455
+lisk-bitcoin,3.98E-06,0.512819412,0.000776102,hitbtc,bittrex,0.0007733,0.00077728
+nxt-bitcoin,4.00E-07,0.856745083,4.67E-05,poloniex,hitbtc,4.65E-05,4.69E-05
+steem-bitcoin,6.35E-06,1.082497074,0.000586607,poloniex,hitbtc,0.00058365,0.00059
+monero-bitcoin,0.00012304,0.791801066,0.015539257,cryptopia,bitfinex,0.01541796,0.015541
+iconomi-bitcoin,8.00E-05,7.003720727,0.00114225,kraken,hitbtc,0.0011,0.00118
+gnosis-bitcoin,0.00069804,0.826211915,0.084486799,cryptopia,poloniex,0.08330203,0.08400007

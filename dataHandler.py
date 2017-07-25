@@ -121,7 +121,7 @@ def checkForDifference(coin, percentThreshold = 0.5):
             print('Discrepency')
             cheap = exchanges[asks.index(minimum)]
             expensive = exchanges[bids.index(maximum)]
-            return (coin, diff, pct, avg, cheap, expensive)
+            return (coin, diff, pct, avg, cheap, expensive, minimum, maximum)
         #otherwise, just ignore
         else:
             print('No Discrepency')
@@ -131,27 +131,27 @@ def checkForDifference(coin, percentThreshold = 0.5):
 #writes a log of current state as the timestamp
 def writeLog(log):
     toWrite = pd.DataFrame(log)
-    toWrite.columns = ['Coin Pair', 'Price Difference', 'Percent Difference', 'Price Average', 'Cheap Exchange', 'Expensive Exchange']
-    path = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+    toWrite.columns = ['Coin Pair', 'Price Difference', 'Percent Difference', 'Price Average', 'Cheap Exchange', 'Expensive Exchange', 'Min', 'Max']
+    path = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H-%M-%S')
     toWrite.to_csv('logs/'+path+'.csv')
     return []
 
 #continually checks for winning numbers
-def makeMoney(listOfPairs, numWins=50):
+def makeMoney(listOfPairs, numWins=30, sleepTime=15, messaging = True, msgpct = 3):  
     winners = []
     while True:
-        if len(winners) >= numWins:
-            winners = writeLog(winners)
-            print('\nLog Written\n')
-            
         for group in listOfPairs:
+            if len(winners) >= numWins: 
+                winners = writeLog(winners)
+                print('\nLog Written\n')
+                
             for token in group.keys():
                 winner = checkForDifference(token)
                 if winner:
                     winners.append(winner)
-                    if winner[2] > 1:
-                        body = winner[0]+' has discrepency of '+str(winner[1])+' which is '+str(winner[2]*100)+' percent'
+                    if winner[2] > msgpct and messaging:
+                        body = '\n' + winner[0]+' has discrepency of '+str(winner[1])+' which is '+str(winner[2])+' percent. It is cheap on '+winner[4]+' and expensive on '+winner[5]
                         message = cli.messages.create(body=body, from_=myTwilioNumber, to=myCellPhone)
                         print('\n-----MESSAGE SENT-----\n')
-                time.sleep(15)
+                time.sleep(sleepTime)
     return winners
