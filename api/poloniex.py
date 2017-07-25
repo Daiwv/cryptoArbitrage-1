@@ -19,3 +19,16 @@ def topAskBid(pair):
     ask = float(orders['asks'][0][0])
     bid = float(orders['bids'][0][0])
     return ask, bid
+
+def top5(pair):
+    formattedAsks, formattedBids = [], []
+    orders = getOrders(pair)
+    asks, bids = orders['asks'][:5], orders['bids'][:5]
+    for ask in asks:
+        formattedAsks.append((float(ask[0]), ask[1], 'poloniex'))
+    for bid in bids:
+        formattedBids.append((float(bid[0]), bid[1], 'poloniex'))
+    return formattedAsks, formattedBids
+
+"""names = requests.get('https://poloniex.com/public?command=returnCurrencies').json()
+g = requests.get('https://poloniex.com/public?command=returnTicker').json()"""

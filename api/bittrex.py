@@ -8,6 +8,7 @@ Created on Sat Jul 15 15:44:05 2017
 """
 
 import requests
+import pandas as pd
 
 def getOrders(pair, depth):
     url = 'https://bittrex.com/api/v1.1/public/getorderbook?market='+pair+'&type=both&depth='+depth
@@ -20,9 +21,20 @@ def topAskBid(pair):
     bid = float(orders['buy'][0]['Rate'])
     return ask, bid
 
+def top5(pair):
+    formattedAsks, formattedBids = [], []
+    orders = getOrders(pair, '5')['result']
+    asks, bids = orders['sell'][:5], orders['buy'][:5]
+    for ask in asks:
+        formattedAsks.append((ask['Rate'],ask['Quantity'], 'bittrex'))
+    for bid in bids:
+        formattedBids.append((bid['Rate'], bid['Quantity'], 'bittrex'))
+    return formattedAsks, formattedBids
 
-"""
-bittrex = {}
+
+
+##getting the bittrex coin pairs
+"""bittrex = {}
 r = requests.get('https://bittrex.com/api/v1.1/public/getmarketsummaries')
 r = r.json()
 c = requests.get('https://bittrex.com/api/v1.1/public/getcurrencies').json()
