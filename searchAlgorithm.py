@@ -29,6 +29,7 @@ overlapPairs = ['verium-bitcoin', 'bitcoindark-bitcoin', 'transfercoin-bitcoin',
 #Pull in all information for a specific coin pair
 def aggregate(coinPair):
     asks, bids = [], []
+    print("-----Trying "+ coinPair[0:-8].capitalize()+"-----")
     try:
         pAsk, pBid = poloniex.top5(poloniexPairs[coinPair])
         asks += pAsk
@@ -57,18 +58,23 @@ def aggregate(coinPair):
         bAsk, bBid = bittrex.top5(bittrexPairs[coinPair])
         asks += bAsk
         bids += bBid
-        print("Success: Bittrex\n")
+        print("Success: Bittrex")
     except:
-        print("Failure: Bittrex\n")
+        print("Failure: Bittrex")
+        
     
-    asks, bids = pd.DataFrame(asks), pd.DataFrame(bids)
-    asks.columns, bids.columns = ['Price', 'Quantity', 'Exchange'], ['Price', 'Quantity', 'Exchange']
+    try:
+        asks, bids = pd.DataFrame(asks), pd.DataFrame(bids)
+        asks.columns, bids.columns = ['Price', 'Quantity', 'Exchange'], ['Price', 'Quantity', 'Exchange']
+    except:
+        asks, bids = pd.DataFrame([]), pd.DataFrame([])
     return asks, bids
 
 def checkForDifference(coin, percentThreshold = 5, volumeThreshold = 0.05):
-    asks, bids = aggregate(coin)
-    askPrices, bidPrices = asks['Price'], bids['Price']
+
     try:
+        asks, bids = aggregate(coin)
+        askPrices, bidPrices = asks['Price'], bids['Price']
         #Get difference information
         avg = np.mean(askPrices+bidPrices)/2
         maximum = bidPrices.idxmax()
@@ -111,23 +117,24 @@ def checkForDifference(coin, percentThreshold = 5, volumeThreshold = 0.05):
                     print('Buying', coin[0:-8])
                     
                     return {'coin':coin, 'percent difference': pctDifference, 'price sold':avgBidPrice, 'price paid':avgAskPrice, 'cheap exchange':cheap, 'expensive exchange':expensive}
-                
+                print('Volume or percent low. Only bid:', maxBidVolume, '& ask:', maxAskVolume, 'worth at', pctDifference, 'percent.')
         #otherwise, just ignore
-        else:
+        else: 
             print('No Discrepency')
     except:
         print('Error')
 
-def searchSpace(searchSpace = overlapPairs, sleepTime=15, messaging = True):  
+def searchSpace(searchSpace = overlapPairs, sleepTime=30, messaging = True, pct=5, volume=0.05):  
     while True:                
         for pair in searchSpace:
-            check = checkForDifference(pair)
+            check = checkForDifference(pair, pct, volume)
             if check and messaging:
                     body = '\n' + check['coin'][0:-8]+' has a discrepency of '+str(check['percent difference'])+'%. It is cheap on '+check['cheap exchange']+' and expensive on '+check['expensive exchange']
                     cli.messages.create(body=body, from_=myTwilioNumber, to=myCellPhone)
                     print('\n-----MESSAGE SENT-----\n')
+            print()
             time.sleep(sleepTime)
  
        
-searchSpace(['bytecoin-bitcoin'], 60, True)
+#searchSpace(pct=5, volume=.05, sleepTime=60)
 #a,b = aggregate('ethereum-bitcoin')
